@@ -58,7 +58,6 @@
             Controls.Add(textBox1);
             Name = "WaitorForm";
             Text = "Waitor Form";
-            Load += Form1_Load;
             ResumeLayout(false);
             PerformLayout();
         }

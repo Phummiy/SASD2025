@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -19,43 +21,53 @@ namespace Restaurant
 
         private void KitchenForm_Load(object sender, EventArgs e)
         {
-            LoadTextFile();
+            var thread = new Thread(() =>
 
-            CreateListenerThread();
+            {
 
-        }
+                int listenPort = 11000;
 
-        private void KitchenForm_FormClosed(object sender, FormClosedEventArgs e)
+                TcpListener server = new TcpListener(IPAddress.Any, listenPort);
 
-        {
+                server.Start();
 
-            SaveTextFile();
+                while (true)
 
-        }
+                {
 
-        private string filename = "data.txt";
+                    var client = server.AcceptTcpClient();
 
-        private void LoadTextFile()
+                    byte[] data = new byte[2000];
 
-        {
+                    while (true)
 
-            //Debug.WriteLine(Directory.GetCurrentDirectory());
+                    {
 
-            if (!File.Exists(filename))
+                        int dataSize = client.GetStream().Read(data, 0, data.Length);
 
-                File.Create(filename);
+                        if (dataSize == 0)
 
-            else
+                            break;
 
-                textBox1.Text = File.ReadAllText(filename);
+                        Invoke(() => {
+                            textBox1.Text += Encoding.UTF8.GetString(data, 0,
+                        dataSize) + "\r\n";
+                        });
 
-        }
+                        //SaveTextFile();
 
-        private void SaveTextFile()
+                    }
 
-        {
+                    client.Close();
 
-            File.WriteAllText(filename, textBox1.Text);
+                }
+
+            });
+
+            thread.IsBackground = true;
+
+            thread.Start();
+
         }
     }
 }
